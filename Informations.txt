@@ -1,0 +1,2 @@
+le depot git est initialisé dans le repertoire DATASCIENTIST
+
