@@ -1,9 +1,9 @@
 Country,Age,Salary,Region,Purchased
-France,44,72000,,No
+France,44,72000, ,No
 Spain,27,48000,center,Yes
 Germany,30,54000,northwest,No
 Spain,38,61000, sud,No
-Germany,40,,est,Yes
+Germany,40, ,ouest,Yes
 France,35,58000,center,Yes
 Spain,,52000,ouest,No
 France,48,79000,ouest,Yes
