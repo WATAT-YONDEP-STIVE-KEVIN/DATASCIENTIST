@@ -8,5 +8,6 @@ Ce depot git a pour but d'aider toute personne dans le besoin de mieux apprendre
 ## TABLE DE MATIERES
 
     + Pretraitement des données
-    + Regression Linéaire Simple
+    + Regression Linéaire Simple In real Life
+    + Multiple Linear Regression In Real Life
 
