@@ -12,139 +12,77 @@ head(PositionSalary);
 summary(PositionSalary)
 
 
-#----------------------------------------------Verifications et comptage des valeurs manquantes------------------------------------#
-
-Spend <- sum(is.na(StartupData$R.D.Spend));
-Administration <- sum(is.na(StartupData$Administration));
-Marketing <- sum(is.na(StartupData$Marketing.Spend));
-State <- sum(is.na(StartupData$State));
-Profit <- sum(is.na(StartupData$Profit));
-
-missing_vector_count_values <- c(Spend, Administration, Marketing, State, Profit);
-
-cat("le nombre de valeur manqaunte pour chaque variable dans l'ordre est: \n", missing_vector_count_values);
 
 
-#-------------------------------OneHotEncoding de la colonne State------------------------------------------#
+#considerons la colonne Level est l'encodage  de la colonne position , donc on ne va considerer que les colonnes level et salary comme faisant partir de notre dataset
+#Étant donné que l'on a que 10 données on ne va pas les separer en train_set et test_set
 
-library(caret);
-
-dummies <- dummyVars("~State", data = StartupData); 
-
-StartupData$State <- predict(dummies, newdata = StartupData);
-
-StartupData_preproced <- as.data.frame(StartupData);
-
-head(StartupData);#On aurait pu toujours utiliser du label encoder pour encoder les etats(States).
-
-
+dataset <- PositionSalary[2:3];
+head(dataset);
 #---------------------Séparation du jeu de données en test-set et train-set----------------------------------#
 
-library(caTools);
+# library(caTools);
 
-set.seed(123)
+# set.seed(123)
 
-split <- sample.split(StartupData_preproced$Profit, SplitRatio = 0.85); 
-train_set <- subset(StartupData_preproced, split == TRUE); 
-test_set <- subset(StartupData_preproced, split == FALSE);
+# split <- sample.split(StartupData_preproced$Profit, SplitRatio = 0.85); 
+# train_set <- subset(StartupData_preproced, split == TRUE); 
+# test_set <- subset(StartupData_preproced, split == FALSE);
 
-head(test_set);
-head(train_set);
-
-
-#--------------------------------Definition du modele de regression-------------------------------------#
-
-regressor <- lm(formula = Profit ~ ., data = train_set); # equivalent a :    formula = Profit ~ R.D.Spend + Administration + Marketing.Spend + etc... ecris tout cela serait trop long don on prefere ecrire formula = Profit ~ . pour regrouper toutes les variables indépzndantes
+# head(test_set);
+# head(train_set);
 
 
-#---------------------------Information sur le modle-----------------------------------#
+#--------------------------------Entrainement sur un modele de regression linéaire-------------------------------------#
 
-summary((regressor));
+linearRegressor <- lm(formula=Salary ~ ., data = dataset);
 
-
-#------------------Session commentaire-------------------------------------#
-#Avec python le backwardElimination se faisait avec une fonction de la bibiotheque statsmodels, hors sur R la fonction summary appliqué au modele nous affiche 
-#deja les P-values des variables independantes  et on a plus qu'a regarer et selectionner celles qui dont la valeur(probabilité) est inferieur ou egale au seuil SL
-
-#ci dessous est le rendu de la fonction summary on voit les valeurs de p-values(Pr(>|t|)) sur leur colonne.
-
-# Coefficients: (1 not defined because of singularities)
-#                        Estimate Std. Error t value Pr(>|t|)    
-# (Intercept)           4.995e+04  7.477e+03   6.680 8.65e-08 ***
-# R.D.Spend             8.040e-01  5.418e-02  14.840  < 2e-16 ***
-# Administration       -3.204e-02  5.715e-02  -0.561    0.579    
-# Marketing.Spend       3.378e-02  2.050e-02   1.648    0.108    
-# StateStateCalifornia -3.286e+02  3.560e+03  -0.092    0.927    
-# StateStateFlorida    -3.829e+02  3.989e+03  -0.096    0.924    
-# StateStateNew York           NA         NA      NA       NA    
-# ---
-# Signif. codes:  0 ‘***’ 0.001 ‘**’ 0.01 ‘*’ 0.05 ‘.’ 0.1 ‘ ’ 1
-
-# 0 '***'0.001 signifie que lorque la p-value est comprise entre cet intervalle la variable est tres significative pour dire tres importante
-# 0.001 '**'0.01 signifie que lorque la p-value est comprise entre cet intervalle la variable est moyennant significative 
-# 0.01 '**'0.05 signifie que lorque la p-value est comprise entre cet intervalle la variable est quand meme significative
-#0.05 ‘.’ 0.1  signifie  la variable est dans la mesure significative
-#’ 0.1 ‘ ’ 1 : pas du tout significative
-
-# Residual standard error: 9730 on 36 degrees of freedom
-# Multiple R-squared:  0.9529,    Adjusted R-squared:  0.9464 
-# F-statistic: 145.7 on 5 and 36 DF,  p-value: < 2.2e-16
+summary(linearRegressor);
 
 
-#----------------------------------Test du modele-------------------------------------------#
+#-------------------------Entrainement sur un mode de regression polynomial------------------------------#
 
-y_pred <- predict(regressor, newdata=test_set);
-cat("\n\nResultat des données de prédictions sur le test_set\n\n");
-head(y_pred);
-cat("\n\nDonnées du test_set \n\n");
-head(test_set);
+#Ajouter des colonnes suplumentaires qui serat le carré, cube etc... de la colonne Level pour une regression de degré souhaitéé
+dataset$Level2 <- dataset$Level ^ 2; 
+dataset$Level3 <- dataset$Level ^ 3; 
+dataset$Level4 <- dataset$Level ^ 4; 
+head(dataset);
+polynomialRegression <- lm(formula=Salary ~ ., data = dataset)
+summary(polynomialRegression);
 
 
 
-#-------------------------------BackWard Elimination en eliminant une variable a la fois------------------------------------#
+#---------------------VISUALISATION DES COURBES DES DEUX MODELES------------------#
+library(ggplot2);
 
 
-#__1er BackWard élimination
+        #------Visualisation regression linéaire simple-------------#
 
-regressor_one <- lm(formula = Profit ~ R.D.Spend + Administration + Marketing.Spend + State, data = train_set);
-summary(regressor_one);
+ggplot() + geom_point(aes(x = dataset$Level, y = dataset$Salary), colour = "red") + geom_line(aes(x = dataset$Level, y = predict(linearRegressor, newdata = dataset)), colour = "blue") + ggtitle("Resultat regression linéaire") + xlab("Level") + ylab("salary");
+  
 
-            #---------les p-values de state(0.927, 0.924) sont  >= 0.05() donc on les retire.
 
-#__2er BackWard élimnation 
+        #------Visualisation regression polynomiale-------------#
 
-regressor_two <- lm(formula = Profit ~ R.D.Spend + Administration + Marketing.Spend , data = train_set);
-summary(regressor_two);
-
-        #La p-value de Administration est de 0.5541 >= 0.05, on retire la variable Administration et on entraine de nouveau le modele
-
-#__3er BackWard élimination
-regressor_three <- lm(formula = Profit ~ R.D.Spend + Marketing.Spend , data = train_set);
-summary(regressor_three);
-
-        #On elimine la variable Marketing Spend car sa p-value est 0.055 > 0.05
+ggplot() + geom_point(aes(x = dataset$Level, y = dataset$Salary), colour = "red") + geom_line(aes(x = dataset$Level, y = predict(polynomialRegression, newdata = dataset)), colour = "blue") + ggtitle("Resultat regression polynomiale") + xlab("Level") + ylab("salary");
 
 
 
-#Comme nous avons dit avec la fonction summary() on va juste regarder les p-values et selectionner celle qui sont inferieure au seuil SL = 0.05
-#Dans ce cas la seule variable qui est retun est R.D.Spend
-#Une foi qu'on a vu ces resultat on va juste appliquer le modele de regression sur les variables significatives dans ce cas la variables R.S.Spend pour un seuil SL = 0.05
+#----------------------EValuation des deux modeles sur une données en entréé------------------------#
+
+                #------ regression linéaire simple-------------#
+                new_predict_1 <- predict(linearRegressor, newdata = data.frame(Level = 6.5));
 
 
-final_regressor <- lm(Profit ~ R.D.Spend, data = train_set);
+                 #------ regression POLYNOMIALE-------------#
+                new_predict_2 <- predict(polynomialRegression, newdata = data.frame(Level = 6.5,
+                                                                                    Level2 = (6.5) ^ 2,
+                                                                                    Level3 = (6.5) ^ 3, 
+                                                                                    Level4 = (6.5) ^ 4
+                                                                                    )); 
 
-summary(final_regressor);
+                #On ajoute Level1 jusqu'a Level4 car on avait 4 Levels au moment de l'entrainement
 
-        #--------------------Predictions sur le test_set---------------------------------#
-        final_y_pred <- predict(final_regressor, newdata = test_set);
+vectorPrediction <- c(new_predict_1, new_predict_2);     
 
-
-#---------------------affichons les predictions avec les deux modeles--------------#
-
-cat("\n\nDonnées de test_set\n\n");
-test_set;
-cat("\n\nResultat des données de prédictions sur le test_set avec le modele sans BackWard élimination\n\n");
-y_pred;
-
-cat("\n\nResultat des données de prédictions sur le test_set avec le modele sans BackWard élimination\n\n");
-final_y_pred
+cat(vectorPrediction);
