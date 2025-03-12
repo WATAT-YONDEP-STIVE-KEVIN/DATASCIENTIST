@@ -13,3 +13,4 @@ Ce depot git a pour but d'aider toute personne dans le besoin de mieux apprendre
     + Regression linéaire multiple dans la vraie vie: cas d'etude concret.
     + Regression polynomiale dans la vie réelle: cas d'etude concret.
     + Support vector Machine :  Machine a vecteur de support : cas d'étude concret.
+    + Decision Tree(Arbre de décision pour la regression linéaire) : cas d'étude concret.
